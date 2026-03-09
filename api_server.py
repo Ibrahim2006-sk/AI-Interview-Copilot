@@ -37,10 +37,16 @@ app.add_middleware(
 # AI Threat Monitor Middleware
 @app.middleware("http")
 async def threat_protection_middleware(request: Request, call_next):
+    # Allow CORS preflight requests
+    if request.method == "OPTIONS":
+        return await call_next(request)
+        
     user_agent = request.headers.get("user-agent", "")
     ip_addr = request.client.host if request.client else "unknown"
     if ai_threat_monitor(ip_addr, user_agent):
-        return HTTPException(status_code=403, detail="🚨 SECURITY ALERT: AI Threat Monitor blocked unusual cyber activity.")
+        from fastapi import Response
+        return Response(content="🚨 SECURITY ALERT: AI Threat Monitor blocked unusual cyber activity.", status_code=403)
+        
     response = await call_next(request)
     # Anti-Clickjacking & security headers
     response.headers["X-Frame-Options"] = "DENY"
