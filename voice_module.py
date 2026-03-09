@@ -5,16 +5,35 @@ import os
 
 def transcribe_audio(audio_path: str) -> str:
     """Converts audio file to text using SpeechRecognition (Google Web Speech API)."""
+    import speech_recognition as sr
+    from pydub import AudioSegment
+    import os
+    
     recognizer = sr.Recognizer()
     try:
         if not os.path.exists(audio_path):
             return "Audio file not found."
             
-        with sr.AudioFile(audio_path) as source:
+        process_path = audio_path
+        
+        # Try to convert to standard wav format required by SpeechRecognition
+        try:
+            audio = AudioSegment.from_file(audio_path)
+            temp_wav = audio_path + "_converted.wav"
+            audio.export(temp_wav, format="wav")
+            process_path = temp_wav
+        except Exception as e:
+            print(f"pydub conversion skipped (ffmpeg might be missing): {e}")
+
+        with sr.AudioFile(process_path) as source:
             # We can use offset/duration or record the whole file. 
             audio_data = recognizer.record(source)
             text = recognizer.recognize_google(audio_data)
-            return text
+            
+        if process_path != audio_path and os.path.exists(process_path):
+            os.remove(process_path)
+            
+        return text
     except Exception as e:
         print(f"Error transcribing audio: {e}")
         return ""

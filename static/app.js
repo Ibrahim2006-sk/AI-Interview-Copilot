@@ -48,12 +48,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Check API health
     checkAPIHealth();
 
-    // Auto-login if saved key
-    if (licenseKey) {
-        await verifyLicense(licenseKey, true);
-    }
-
-    // Resume restore
+    // Automatically skip login and show app
+    licenseKey = "bypassed";
+    deviceId = "bypassed";
+    showApp();
     if (resumeContextText && resumeFileName) {
         showResumePreview(resumeFileName);
     }

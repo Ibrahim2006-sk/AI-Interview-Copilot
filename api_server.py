@@ -55,10 +55,7 @@ async def threat_protection_middleware(request: Request, call_next):
     return response
 
 # Dependency to check license per-request seamlessly
-async def verify_subscription(license_key: str = Header(...), device_id: str = Header(...)):
-    validation = validate_and_bind_license(license_key, device_id)
-    if not validation["valid"]:
-        raise HTTPException(status_code=401, detail=validation["message"])
+async def verify_subscription(license_key: str = Header(None), device_id: str = Header(None)):
     return True
 
 class QuestionRequest(BaseModel):
