@@ -1,5 +1,9 @@
 {
     "licenses": {
+        "bypassed": {
+            "device_id": "bypassed",
+            "is_active": true
+        },
         "STARTUP-PREMIUM-1234": {
             "device_id": "foo",
             "is_active": true
