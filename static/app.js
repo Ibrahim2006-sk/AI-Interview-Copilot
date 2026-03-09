@@ -3,7 +3,7 @@
 // ============================================================
 
 // ─── State ───────────────────────────────────────────────────
-const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
+const API_BASE = (window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://127.0.0.1:8000" : "";
 let deviceId = "";
 let licenseKey = localStorage.getItem("premium_license_key") || "";
 let resumeContextText = localStorage.getItem("resume_context") || "";
@@ -26,11 +26,15 @@ let recognitionActive = false;
 
 // ─── Hardware ID Generator ────────────────────────────────────
 async function generateHardwareId() {
-    const nav = window.navigator;
-    const scr = window.screen;
-    const raw = `${nav.userAgent}|${nav.language}|${scr.colorDepth}|${scr.width}x${scr.height}|${new Date().getTimezoneOffset()}|${nav.hardwareConcurrency || 4}`;
-    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    try {
+        const nav = window.navigator;
+        const scr = window.screen;
+        const raw = `${nav.userAgent}|${nav.language}|${scr.colorDepth}|${scr.width}x${scr.height}|${new Date().getTimezoneOffset()}|${nav.hardwareConcurrency || 4}`;
+        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    } catch (err) {
+        return "LOCAL-DEV-" + Math.random().toString(36).substring(2, 10);
+    }
 }
 
 // ─── DOM Ready ────────────────────────────────────────────────
@@ -149,7 +153,8 @@ async function verifyLicense(key, silent = false) {
             if (!silent) flashError(data.detail || "Access denied. Invalid key.");
             localStorage.removeItem("premium_license_key");
         }
-    } catch {
+    } catch (err) {
+        console.error("Auth Error:", err);
         if (!silent) flashError("Cannot reach backend server. Is it running?");
     } finally {
         if (!silent) {
