@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+langdetect
+deep-translator
+openai
+python-dotenv
+pdfplumber
+SpeechRecognition
+edge-tts
+python-multipart
+pydub
+slowapi
+aiofiles
+gunicorn

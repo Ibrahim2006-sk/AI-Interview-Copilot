@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview Copilot — Live Session</title>
+    <meta name="description" content="Real-time AI interview copilot that listens to your interview questions and surfaces perfect answers instantly.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- ===================== LOGIN SCREEN ===================== -->
+    <div id="login-container" class="login-overlay">
+        <div class="login-card">
+            <div class="login-brand">
+                <div class="brand-logo">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <h1 class="brand-name">Interview Copilot <span class="brand-badge">AI</span></h1>
+                    <p class="brand-tagline">Your real-time AI interview partner</p>
+                </div>
+            </div>
+
+            <div class="login-divider"></div>
+
+            <h2 class="login-heading">Activate Your Session</h2>
+            <p class="login-subtext">Enter your license key to unlock the full AI Copilot experience.</p>
+
+            <div class="hwid-box">
+                <span class="hwid-label"><i class="fas fa-fingerprint"></i> Device ID</span>
+                <span id="device-id-display" class="hwid-val">Scanning...</span>
+                <button class="copy-btn" id="copy-hwid-btn" title="Copy HWID"><i class="fas fa-copy"></i></button>
+            </div>
+
+            <div class="login-input-wrap">
+                <i class="fas fa-key login-input-icon"></i>
+                <input type="password" id="license-key-input" placeholder="e.g. STARTUP-PREMIUM-XXXX" autocomplete="off">
+                <button id="toggle-key-visibility" class="eye-btn"><i class="fas fa-eye"></i></button>
+            </div>
+
+            <button id="activate-btn" class="activate-btn">
+                <span id="activate-btn-text">Unlock Copilot</span>
+                <i class="fas fa-arrow-right" id="activate-btn-icon"></i>
+                <div class="btn-spinner hidden" id="activate-spinner"></div>
+            </button>
+            <p id="auth-message" class="auth-feedback"></p>
+
+            <div class="login-footer">
+                <span>Developed by <strong>SHAIKH IBRAHIM</strong></span>
+                <span>Secure · Encrypted · Private</span>
+            </div>
+        </div>
+
+        <!-- Decorative blobs -->
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+
+    <!-- ===================== MAIN SESSION SCREEN ===================== -->
+    <div id="app-container" class="session-layout hidden">
+
+        <!-- ====== LEFT SIDEBAR ====== -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon"><i class="fas fa-robot"></i></div>
+                    <span>Copilot <span class="logo-pill">AI</span></span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Menu</div>
+                <a class="nav-link active" id="nav-live" data-panel="live">
+                    <i class="fas fa-circle-dot"></i> Live Session
+                    <span class="live-badge">LIVE</span>
+                </a>
+                <a class="nav-link" id="nav-setup" data-panel="setup">
+                    <i class="fas fa-sliders"></i> Setup & Config
+                </a>
+                <a class="nav-link" id="nav-resume" data-panel="resume">
+                    <i class="fas fa-file-user"></i> Resume
+                </a>
+                <a class="nav-link" id="nav-history" data-panel="history">
+                    <i class="fas fa-clock-rotate-left"></i> History
+                </a>
+            </nav>
+
+            <div class="sidebar-session-info">
+                <div class="session-stat">
+                    <span class="stat-num" id="sidebar-question-count">0</span>
+                    <span class="stat-label">Questions</span>
+                </div>
+                <div class="session-divider-v"></div>
+                <div class="session-stat">
+                    <span class="stat-num" id="sidebar-session-time">0m</span>
+                    <span class="stat-label">Session</span>
+                </div>
+                <div class="session-divider-v"></div>
+                <div class="session-stat">
+                    <span class="stat-num" id="sidebar-mode">Auto</span>
+                    <span class="stat-label">Mode</span>
+                </div>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">SI</div>
+                <div class="user-meta">
+                    <span class="user-name">Premium User</span>
+                    <span class="user-status"><i class="fas fa-circle status-dot"></i> License Active</span>
+                </div>
+                <button class="logout-btn" id="logout-btn" title="Logout"><i class="fas fa-right-from-bracket"></i></button>
+            </div>
+        </aside>
+
+        <!-- ====== MAIN CONTENT ====== -->
+        <main class="main-content">
+
+            <!-- TOP BAR -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="sidebar-toggle-btn"><i class="fas fa-bars"></i></button>
+                    <div class="topbar-title" id="topbar-title">Live Session</div>
+                </div>
+
+                <div class="topbar-center">
+                    <!-- Copilot pill status bar (like Final Round AI) -->
+                    <div class="copilot-status-bar" id="copilot-status-bar">
+                        <div class="status-drag-handle"><i class="fas fa-grip-dots-vertical"></i></div>
+                        <div class="status-indicator" id="status-indicator">
+                            <span class="status-dot-anim"></span>
+                            <span id="status-text">Ready to Listen</span>
+                        </div>
+                        <button id="launch-copilot-btn" class="launch-pill-btn">
+                            <i class="fas fa-play" id="launch-icon"></i>
+                            <span id="launch-label">Launch Copilot</span>
+                        </button>
+                        <button id="mute-btn" class="pill-action-btn" title="Mute">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="stealth-caption-btn" class="pill-action-btn" title="Stealth Live Caption">
+                            <i class="fas fa-eye-low-vision"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <span class="session-timer" id="session-timer">00:00</span>
+                    <div class="topbar-avatars">
+                        <div class="t-avatar" title="You">SI</div>
+                        <div class="t-avatar ai-av" title="AI Copilot"><i class="fas fa-robot"></i></div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- PANEL: LIVE SESSION -->
+            <div id="panel-live" class="panel active">
+
+                <!-- Meeting Source Bar -->
+                <div class="meeting-source-bar">
+                    <div class="source-tabs">
+                        <button class="source-tab active" id="source-mic" data-source="mic">
+                            <i class="fas fa-microphone"></i> Microphone
+                        </button>
+                        <button class="source-tab" id="source-meet" data-source="meet">
+                            <i class="fab fa-google"></i> Google Meet
+                        </button>
+                        <button class="source-tab" id="source-zoom" data-source="zoom">
+                            <i class="fas fa-video"></i> Zoom
+                        </button>
+                        <button class="source-tab" id="source-teams" data-source="teams">
+                            <i class="fab fa-microsoft"></i> Teams
+                        </button>
+                    </div>
+                    <div class="source-status" id="source-status">
+                        <span class="source-dot" id="source-dot"></span>
+                        <span id="source-status-text">Microphone Mode</span>
+                    </div>
+                </div>
+
+                <div class="live-session-grid">
+
+                    <!-- LEFT: Question + Voice input -->
+                    <div class="left-col">
+
+                        <!-- Interviewer Transcript Card -->
+                        <div class="glass-card transcript-card">
+                            <div class="card-label">
+                                <span class="dot-red"></span>
+                                <span>Interviewer Question</span>
+                                <span class="badge-lang" id="detected-lang-badge">🌐 Auto</span>
+                            </div>
+                            <div class="transcript-box" id="transcript-display">
+                                <div class="placeholder-text">
+                                    <i class="fas fa-microphone-lines fa-2x"></i>
+                                    <p>Click <strong>Launch Copilot</strong> to begin listening to your interview in real time.</p>
+                                </div>
+                            </div>
+                            <div class="transcript-footer">
+                                <span id="mic-status-label" class="mic-status">🎙️ Microphone Off</span>
+                                <div class="wave-bars" id="wave-bars">
+                                    <div class="wave-bar"></div>
+                                    <div class="wave-bar"></div>
+                                    <div class="wave-bar"></div>
+                                    <div class="wave-bar"></div>
+                                    <div class="wave-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual Input -->
+                        <div class="glass-card manual-card">
+                            <div class="card-label">
+                                <span><i class="fas fa-keyboard"></i> Manual Input</span>
+                                <span class="badge-info">Type manually if mic unavailable</span>
+                            </div>
+                            <textarea id="manual-question" class="manual-textarea" placeholder="Paste or type an interview question here..."></textarea>
+                            <button class="manual-submit-btn" id="manual-submit-btn">
+                                <i class="fas fa-bolt"></i> Generate Answer
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT: AI Answer Panel -->
+                    <div class="right-col">
+                        <div class="glass-card answer-card">
+                            <div class="card-label">
+                                <span><i class="fas fa-wand-magic-sparkles"></i> AI Suggested Answer</span>
+                                <div class="answer-actions">
+                                    <button class="icon-action-btn" id="toggle-autospeak-btn" title="Toggle Auto-Speak">
+                                        <i class="fas fa-volume-high" id="autospeak-icon"></i>
+                                    </button>
+                                    <button class="icon-action-btn" id="copy-answer-btn" title="Copy Answer"><i class="fas fa-copy"></i></button>
+                                    <button class="icon-action-btn" id="speak-answer-btn" title="Read Aloud"><i class="fas fa-volume-high"></i></button>
+                                    <button class="icon-action-btn" id="regenerate-btn" title="Regenerate"><i class="fas fa-rotate-right"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="answer-body" id="answer-body">
+                                <div class="answer-placeholder">
+                                    <div class="ai-avatar-lg"><i class="fas fa-robot"></i></div>
+                                    <p>Your AI-generated answer will appear here instantly once the copilot detects a question.</p>
+                                    <div class="feature-chips">
+                                        <span class="chip"><i class="fas fa-globe"></i> Multi-Language</span>
+                                        <span class="chip"><i class="fas fa-volume-high"></i> Text-to-Speech</span>
+                                        <span class="chip"><i class="fas fa-shield-halved"></i> Secure</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Typing Indicator -->
+                            <div id="typing-indicator" class="typing-indicator hidden">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <span>AI is generating your answer...</span>
+                            </div>
+
+                            <!-- Answer Footer -->
+                            <div class="answer-footer" id="answer-footer" style="display:none;">
+                                <div class="answer-meta">
+                                    <span id="answer-type-badge" class="meta-badge"></span>
+                                    <span id="answer-lang-badge" class="meta-badge lang-badge"></span>
+                                </div>
+                                <div class="confidence-meter">
+                                    <span>Confidence:</span>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" id="confidence-fill"></div>
+                                    </div>
+                                    <span id="confidence-pct">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="quick-stats-row">
+                            <div class="stat-card">
+                                <i class="fas fa-comments"></i>
+                                <div>
+                                    <span class="stat-val" id="q-count">0</span>
+                                    <span class="stat-desc">Questions Handled</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-language"></i>
+                                <div>
+                                    <span class="stat-val" id="detected-lang-val">—</span>
+                                    <span class="stat-desc">Detected Language</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-microphone"></i>
+                                <div>
+                                    <span class="stat-val" id="copilot-state-val">Off</span>
+                                    <span class="stat-desc">Copilot State</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL: SETUP & CONFIG -->
+            <div id="panel-setup" class="panel hidden">
+                <div class="panel-page-title">Setup & Configuration</div>
+                <div class="setup-grid">
+                    <div class="glass-card setup-card-item">
+                        <h3 class="setup-card-title"><i class="fas fa-sliders"></i> Interview Settings</h3>
+                        <div class="form-group-modern">
+                            <label>Interview Category</label>
+                            <select id="interview-type" class="modern-select">
+                                <option value="HR Interview">HR Interview</option>
+                                <option value="Technical Interview">Technical Interview</option>
+                                <option value="Behavioral Interview">Behavioral Interview</option>
+                                <option value="Managerial Interview">Managerial Interview</option>
+                                <option value="Finance Interview">Finance Interview</option>
+                                <option value="Product Management">Product Management</option>
+                            </select>
+                        </div>
+                        <div class="form-group-modern">
+                            <label>AI Response Language</label>
+                            <select id="target-lang" class="modern-select">
+                                <option value="auto">🌐 Auto-Detect</option>
+                                <option value="en">🇺🇸 English</option>
+                                <option value="hi">🇮🇳 Hindi</option>
+                                <option value="es">🇪🇸 Spanish</option>
+                                <option value="ar">🇸🇦 Arabic</option>
+                                <option value="fr">🇫🇷 French</option>
+                                <option value="de">🇩🇪 German</option>
+                            </select>
+                        </div>
+                        <div class="form-group-modern">
+                            <label>AI Voice Profile</label>
+                            <select id="ai-voice" class="modern-select">
+                                <option value="en-US-AriaNeural">🎙️ Aria — Female US</option>
+                                <option value="en-US-ChristopherNeural">🎙️ Christopher — Male US</option>
+                                <option value="hi-IN-SwaraNeural">🎙️ Swara — Female IN</option>
+                                <option value="hi-IN-MadhurNeural">🎙️ Madhur — Male IN</option>
+                            </select>
+                        </div>
+                        <div class="form-group-modern">
+                            <div class="toggle-control">
+                                <div>
+                                    <label class="toggle-title">Auto-Speak Answers</label>
+                                    <p class="toggle-desc">Automatically read AI answers aloud when generated.</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="auto-speak-toggle" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <button class="save-settings-btn" id="save-settings-btn">
+                            <i class="fas fa-check"></i> Save Settings
+                        </button>
+                    </div>
+
+                    <div class="glass-card setup-card-item">
+                        <h3 class="setup-card-title"><i class="fas fa-shield-halved"></i> Security Info</h3>
+                        <div class="security-info-item">
+                            <span class="sec-label">Device ID</span>
+                            <span class="sec-val" id="sec-device-id">—</span>
+                        </div>
+                        <div class="security-info-item">
+                            <span class="sec-label">License Status</span>
+                            <span class="sec-val green">✅ Active & Verified</span>
+                        </div>
+                        <div class="security-info-item">
+                            <span class="sec-label">Session ID</span>
+                            <span class="sec-val" id="sec-session-id">—</span>
+                        </div>
+                        <div class="security-info-item">
+                            <span class="sec-label">Backend API</span>
+                            <span class="sec-val" id="sec-api-status">Checking...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL: RESUME -->
+            <div id="panel-resume" class="panel hidden">
+                <div class="panel-page-title">Resume Sync</div>
+                <div class="glass-card resume-panel-card">
+                    <div class="resume-upload-area" id="drop-zone">
+                        <div class="resume-upload-icon"><i class="fas fa-cloud-arrow-up"></i></div>
+                        <h3>Drop your resume here</h3>
+                        <p>PDF files only — The AI will use your experience to personalize answers</p>
+                        <button class="resume-upload-btn" id="resume-upload-trigger">
+                            <i class="fas fa-folder-open"></i> Choose File
+                        </button>
+                        <input type="file" id="resume-upload" accept=".pdf" hidden>
+                    </div>
+                    <div id="resume-status" class="resume-status-msg"></div>
+                    <div id="resume-preview" class="resume-preview hidden">
+                        <div class="resume-file-info">
+                            <i class="fas fa-file-pdf"></i>
+                            <div>
+                                <span id="resume-filename" class="filename">—</span>
+                                <span class="file-status success">✅ Synced to AI Copilot</span>
+                            </div>
+                            <button class="remove-resume-btn" id="remove-resume-btn"><i class="fas fa-xmark"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL: HISTORY -->
+            <div id="panel-history" class="panel hidden">
+                <div class="panel-page-title">Session History</div>
+                <div id="history-list" class="history-list">
+                    <div class="empty-history">
+                        <i class="fas fa-clock-rotate-left fa-2x"></i>
+                        <p>No questions answered yet in this session.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <i class="fas fa-circle-check toast-icon"></i>
+        <span id="toast-msg">Copied!</span>
+    </div>
+
+    <!-- Global Audio Player (hidden) -->
+    <audio id="ai-audio-player" hidden></audio>
+
+    <!-- Meeting Connection Modal -->
+    <div id="meeting-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-meeting-title"><i class="fab fa-google"></i> Connect to Google Meet</h3>
+                <button class="modal-close-btn" id="modal-close-btn"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-steps">
+                    <div class="modal-step">
+                        <div class="step-num">1</div>
+                        <div>
+                            <strong>Open your meeting</strong>
+                            <p>Make sure your Google Meet / Zoom / Teams meeting is open in a browser tab or running on your desktop.</p>
+                        </div>
+                    </div>
+                    <div class="modal-step">
+                        <div class="step-num">2</div>
+                        <div>
+                            <strong>Share the meeting tab</strong>
+                            <p>Click "Connect" below → Select the meeting tab/window → <strong>Check "Share tab audio"</strong> → Share.</p>
+                        </div>
+                    </div>
+                    <div class="modal-step">
+                        <div class="step-num">3</div>
+                        <div>
+                            <strong>AI listens automatically</strong>
+                            <p>The Copilot captures the interviewer's voice from the meeting and generates answers in real time.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-tip">
+                    <i class="fas fa-shield-halved"></i>
+                    <span>Your meeting participants <strong>cannot see or hear</strong> this Copilot. It runs silently in the background.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-cancel-btn" id="modal-cancel-btn">Cancel</button>
+                <button class="modal-connect-btn" id="modal-connect-btn">
+                    <i class="fas fa-plug"></i> Connect to Meeting
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
