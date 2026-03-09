@@ -908,7 +908,7 @@ document.getElementById("modal-connect-btn").addEventListener("click", async () 
     document.getElementById("source-status-text").innerText = "Connecting...";
     
     try {
-        // Request screen/tab capture WITH audio
+        // Request screen/tab capture WITH audio (This captures the other person)
         meetingStream = await navigator.mediaDevices.getDisplayMedia({
             video: true, // Required, but we only care about audio
             audio: {
@@ -918,7 +918,21 @@ document.getElementById("modal-connect-btn").addEventListener("click", async () 
             }
         });
         
-        // Check if we actually got audio
+        // Request microphone access (This captures the user's voice)
+        let micStream = null;
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                } 
+            });
+        } catch (micErr) {
+            console.warn("Could not get microphone access during meeting connect. Continuing with just meeting audio.", micErr);
+        }
+        
+        // Check if we actually got audio from the meeting stream
         const audioTracks = meetingStream.getAudioTracks();
         if (audioTracks.length === 0) {
             showToast("⚠️ No audio captured! Make sure to check 'Share tab audio' when sharing.", "red");
@@ -926,7 +940,27 @@ document.getElementById("modal-connect-btn").addEventListener("click", async () 
             return;
         }
         
-        // Success!
+        // Success! Combine streams if we have both
+        if (micStream && micStream.getAudioTracks().length > 0) {
+            // Create a custom mixed stream containing both meeting audio and mic audio
+            const mixedContext = new AudioContext();
+            const meetingSource = mixedContext.createMediaStreamSource(meetingStream);
+            const micSource = mixedContext.createMediaStreamSource(micStream);
+            
+            const dest = mixedContext.createMediaStreamDestination();
+            meetingSource.connect(dest);
+            micSource.connect(dest);
+            
+            // Re-assign the meeting stream to our new mixed stream
+            // so startMeetingAudioCapture() receives both voices mixed down to one track
+            const mixedStream = dest.stream;
+            
+            // Add the video track back in so it doesn't break any cleanup logic
+            mixedStream.addTrack(meetingStream.getVideoTracks()[0]);
+            
+            meetingStream = mixedStream;
+        }
+        
         setActiveSource(source);
         showToast(`✅ Connected to ${source === "meet" ? "Google Meet" : source === "zoom" ? "Zoom" : "Teams"}! AI is listening.`);
         
