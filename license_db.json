@@ -1,11 +1,15 @@
 {
     "licenses": {
         "STARTUP-PREMIUM-1234": {
-            "device_id": "53832e5e966f5c9113da7fd20701bc0961ed9f1d9d9bcf1dbcca03f5c2bf07cd",
+            "device_id": null,
             "is_active": true
         },
         "TEST-LICENSE-0000": {
-            "device_id": "46cfb3ed508a008ac0b86f3a44bf28f9c0ff5bdf4fa834f3845a3dc0e4910504",
+            "device_id": null,
+            "is_active": true
+        },
+        "ADMIN-FULL-ACCESS-2026": {
+            "device_id": null,
             "is_active": true
         }
     }
