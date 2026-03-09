@@ -1,7 +1,7 @@
 {
     "licenses": {
         "STARTUP-PREMIUM-1234": {
-            "device_id": null,
+            "device_id": "dev123",
             "is_active": true
         },
         "TEST-LICENSE-0000": {

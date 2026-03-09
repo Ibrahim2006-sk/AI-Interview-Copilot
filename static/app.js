@@ -3,6 +3,7 @@
 // ============================================================
 
 // ─── State ───────────────────────────────────────────────────
+const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
 let deviceId = "";
 let licenseKey = localStorage.getItem("premium_license_key") || "";
 let resumeContextText = localStorage.getItem("resume_context") || "";
@@ -98,7 +99,7 @@ function generateSessionId() {
 async function checkAPIHealth() {
     const el = document.getElementById("sec-api-status");
     try {
-        const res = await fetch("/", { method: "GET" });
+        const res = await fetch(API_BASE + "/", { method: "GET" });
         if (res.ok) {
             el.innerHTML = '<span style="color:var(--green)">✅ Online</span>';
         } else {
@@ -131,7 +132,7 @@ async function verifyLicense(key, silent = false) {
     }
 
     try {
-        const res = await fetch("/verify_license", {
+        const res = await fetch(API_BASE + "/verify_license", {
             method: "POST",
             headers: {
                 "license-key": key,
@@ -429,7 +430,7 @@ async function handleQuestion(questionText) {
     const aiVoice = document.getElementById("ai-voice").value;
 
     try {
-        const res = await fetch("/generate_answer", {
+        const res = await fetch(API_BASE + "/generate_answer", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -532,7 +533,7 @@ function showTypingIndicator(show) {
 // ─── Text-to-Speech ───────────────────────────────────────────
 async function playAnswerAudio(text, voice) {
     try {
-        const res = await fetch("/text_to_voice", {
+        const res = await fetch(API_BASE + "/text_to_voice", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -715,7 +716,7 @@ async function handleResumeUpload(file) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-        const res = await fetch("/upload_resume", {
+        const res = await fetch(API_BASE + "/upload_resume", {
             method: "POST",
             headers: { 
                 "license-key": licenseKey, 
